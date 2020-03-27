@@ -1,0 +1,1 @@
+var bar = "hello world";
