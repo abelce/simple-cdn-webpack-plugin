@@ -191,7 +191,7 @@ function filterArray(filters, data) {
 }
 
 
-class SQiniu {
+class Upload {
     constructor(options) {
         this.options = getOptions(options);
         const {
@@ -382,4 +382,4 @@ class SQiniu {
     }
 }
 
-module.exports = SQiniu;
+module.exports = Upload;

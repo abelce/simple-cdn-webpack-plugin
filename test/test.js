@@ -1,4 +1,4 @@
-const SQiNiu = require('../sQiNiu');
+const SQiNiu = require('../src/upload');
 
 function run () {
 
@@ -13,7 +13,7 @@ function run () {
         },
     };
 
-    const s = new SQiNiu({
+    const s = new Upload({
         accessKey: '',
         secretKey: '',
         zone: '',

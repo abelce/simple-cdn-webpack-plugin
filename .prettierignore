@@ -1,0 +1,7 @@
+node_modules
+.prettierignore
+yarn.lock
+.gitignore
+*.json
+*.md
+/dist
