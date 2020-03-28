@@ -1,4 +1,6 @@
+## simple-cdn-weback-plugin
 
+> Upload the file to Qiniu cdn
 
 ##  Installation and usage
 
@@ -30,10 +32,6 @@ new SimleCdnWebpackPlugin({
     refreshFilters: [],
   })
 ```
-
-# #simple-cdn-weback-plugin
-
-> Upload the file to Qiniu cdn
 
 ##  Parameters
 
