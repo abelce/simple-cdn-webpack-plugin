@@ -1,22 +1,51 @@
 {
-  "name": "sqiniuplugin",
+  "name": "simple-cdn-weback-plugin",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Install",
+  "main": "dist/index.js",
   "scripts": {
-    "build": "babel ./src/index.js -o ./dist/index.js"
+    "build": "babel ./src/upload.js -o ./dist/index.js --no-comments"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "find-cache-dir": "^3.3.1",
     "qiniu": "^7.3.0",
     "prettier": "^1.14.2",
     "pretty-quick": "^1.6.0"
   },
+  "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.9.0",
+    "@babel/plugin-transform-runtime": "^7.9.0",
+    "@babel/preset-env": "^7.9.0",
+    "@babel/preset-stage-0": "^7.8.3",
+    "babel-preset-minify": "^0.5.1",
+    "babel-preset-stage-1": "^6.24.1",
+    "husky": "^4.2.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abelce/simple-cdn-weback-plugin.git"
+  },
+  "author": "https://github.com/abelce",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/abelce/simple-cdn-weback-plugin/issues"
+  },
+  "homepage": "https://github.com/abelce/simple-cdn-weback-plugin#readme",
   "husky": {
     "hooks": {
       "pre-commit": "pretty-quick --staged"
     }
+  },
+  "keywords": [
+    "webpack",
+    "plugin",
+    "qiniu",
+    "cdn",
+    "upload",
+    "exclude"
+  ],
+  "directories": {
+    "test": "test"
   }
 }
