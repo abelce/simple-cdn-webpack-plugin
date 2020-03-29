@@ -2,6 +2,7 @@ const qiniu = require("qiniu");
 const fs = require("fs");
 const crypto = require("crypto");
 const findCacheDir = require("find-cache-dir");
+const chalk = require("chalk");
 
 const defaultOptions = {
   // 默认超时时间
@@ -239,7 +240,7 @@ class Upload {
             putExtra,
             function(err, respBody, respInfo) {
               if (err) {
-                console.log(fileName + ": upload failed");
+                console.log(chalk.red(fileName) + ": upload failed");
                 console.error(err);
                 reject(err);
               } else if (respInfo.statusCode == 200) {
@@ -254,7 +255,7 @@ class Upload {
       };
 
       const uploadFiles = async fileNames => {
-        console.log(`${fileNames.length} files need to upload`);
+        console.log(`${chalk.blue(fileNames.length)} files need to upload`);
         return await fileNames.map(async fileName => {
           return await uploadFile(fileName).catch(err => {
             this.failedData[fileName] = true;
@@ -303,7 +304,9 @@ class Upload {
             !newCacheData[fileName] ||
             newCacheData[fileName] !== this.cacheData[fileName]
         );
-        console.log(`${needDeleteFiles.length} files need to delete`);
+        console.log(
+          `${chalk.blue(needDeleteFiles.length)} files need to delete`
+        );
         // 没有缓存
         if (needDeleteFiles.length === 0) {
           return Promise.resolve();
@@ -353,7 +356,9 @@ class Upload {
         let needRefreshUrls = filterArray(this.options.refreshFilters, [
           ...shouldUpdateFileNames
         ]).map(fileName => `${this.options.cdn}${fileName}`);
-        console.log(`${needRefreshUrls.length} files need to refresh`);
+        console.log(
+          `${chalk.blue(needRefreshUrls.length)} files need to refresh`
+        );
 
         if (needRefreshUrls.length === 0) {
           return Promise.resolve();
@@ -388,7 +393,9 @@ class Upload {
       };
 
       const finish = () => {
-        console.log("files successfully uploaded to Qiniu Cloud cdn!");
+        console.log(
+          chalk.blue("files successfully uploaded to Qiniu Cloud cdn!")
+        );
       };
 
       // 上传文件
