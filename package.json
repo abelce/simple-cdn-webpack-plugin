@@ -1,5 +1,5 @@
 {
-  "name": "simple-cdn-weback-plugin",
+  "name": "simple-cdn-webpack-plugin",
   "version": "1.0.1",
   "description": "Install",
   "main": "dist/index.js",
@@ -28,14 +28,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/abelce/simple-cdn-weback-plugin.git"
+    "url": "git+https://github.com/abelce/simple-cdn-webpack-plugin.git"
   },
   "author": "https://github.com/abelce",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/abelce/simple-cdn-weback-plugin/issues"
+    "url": "https://github.com/abelce/simple-cdn-webpack-plugin/issues"
   },
-  "homepage": "https://github.com/abelce/simple-cdn-weback-plugin#readme",
+  "homepage": "https://github.com/abelce/simple-cdn-webpack-plugin#readme",
   "husky": {
     "hooks": {
       "pre-commit": "pretty-quick --staged"

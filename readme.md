@@ -1,4 +1,4 @@
-## simple-cdn-weback-plugin
+## simple-cdn-webpack-plugin
 
 > Upload the file to Qiniu cdn
 
@@ -7,19 +7,19 @@
 Install
 
 ```
-npm install --save-dev simple-cdn-weback-plugin
+npm install --save-dev simple-cdn-webpack-plugin
 ```
 
 or
 
 ```
-yarn add --dev simple-cdn-weback-plugin
+yarn add --dev simple-cdn-webpack-plugin
 ```
 
 ## Example
 
 ```
-const SimleCdnWebpackPlugin = required("simple-cdn-weback-plugin");
+const SimleCdnWebpackPlugin = required("simple-cdn-webpack-plugin");
 
 new SimleCdnWebpackPlugin({
     accessKey: 'xxx',
@@ -47,6 +47,7 @@ new SimleCdnWebpackPlugin({
 | delete         | bool   | false   | whether to delete the last uploaded files from qiniu         |
 | Refresh        | bool   | true    | whether to refresh the file                                  |
 | refreshFilters | array  | []      | filter files that need to be refreshed, all files are refreshed by default. parameters can be strings, regular, functions |
+| prefiex | string | | the `prefix` of the filename |
 
 
 ## License

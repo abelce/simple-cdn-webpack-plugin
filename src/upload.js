@@ -19,7 +19,9 @@ const defaultOptions = {
   // 需要刷新的文件，字符串，正则，函数均可
   refresh: false,
   refreshFilters: [],
-  delete: false
+  delete: false,
+  // 文件目录
+  prefix: ""
 };
 
 //七牛单次刷新cdn、单次删除文件 最大的数目
@@ -63,12 +65,19 @@ const getOptions = data => {
     options.refresh = false;
   }
   // cdn必须有https | http前缀，否则刷新文件会失败.
-  if (!data.cdn.endsWith("https://") || !data.cdn.endsWith("http://")) {
+  if (!data.cdn.startsWith("https://") && !data.cdn.startsWith("http://")) {
     throw new Error(`cdn: "${data.cdn}" must have http or https prefix`);
   }
   // 为cdn自动加上/后缀
   if (!data.cdn.endsWith("/")) {
     options.cdn += "/";
+  }
+
+  // 检查dir属性
+  if (data.prefix) {
+    if (!data.prefix.endsWith("/")) {
+      options.prefix = data.prefix + "/";
+    }
   }
 
   return options;
@@ -221,13 +230,18 @@ class Upload {
       );
       let newCacheData = {};
 
+      // 拼接七牛文件的路径
+      const joinFileName = fileName =>
+        this.options.prefix ? this.options.prefix + fileName : fileName;
+
       // 开始上传
       const uploadFile = fileName => {
         const file = assets[fileName];
+        const qiniuFileName = joinFileName(fileName);
         const fileToken = uptoken(
           this.createMac(),
           this.options.bucket,
-          fileName
+          qiniuFileName
         );
         const formUploader = new qiniu.form_up.FormUploader(this.config);
         const putExtra = new qiniu.form_up.PutExtra();
@@ -235,7 +249,7 @@ class Upload {
         return new Promise((resolve, reject) => {
           return formUploader.putFile(
             fileToken,
-            fileName,
+            qiniuFileName,
             file.existsAt,
             putExtra,
             function(err, respBody, respInfo) {
@@ -277,8 +291,9 @@ class Upload {
             );
             const tmp = [];
             ret.map(item => {
-              newCacheData[item.fileName] = item.hash;
-              if (needUpload(item.hash, this.cacheData[item.fileName])) {
+              const qiniuFileName = joinFileName(item.fileName);
+              newCacheData[qiniuFileName] = item.hash;
+              if (needUpload(item.hash, this.cacheData[qiniuFileName])) {
                 tmp.push(item.fileName);
               }
             });
@@ -355,7 +370,7 @@ class Upload {
         const cdnManager = new qiniu.cdn.CdnManager(this.createMac());
         let needRefreshUrls = filterArray(this.options.refreshFilters, [
           ...shouldUpdateFileNames
-        ]).map(fileName => `${this.options.cdn}${fileName}`);
+        ]).map(fileName => `${this.options.cdn}${joinFileName(fileName)}`);
         console.log(
           `${chalk.blue(needRefreshUrls.length)} files need to refresh`
         );
@@ -388,7 +403,7 @@ class Upload {
           });
         };
 
-        let chunkes = chunkArray(needDeleteFiles, MAX_DELETE);
+        let chunkes = chunkArray(needRefreshUrls, MAX_DELETE);
         return Promise.all(chunkes.map(chunk => refreshByBatch(chunk)));
       };
 
@@ -396,6 +411,7 @@ class Upload {
         console.log(
           chalk.blue("files successfully uploaded to Qiniu Cloud cdn!")
         );
+        callback();
       };
 
       // 上传文件
@@ -408,8 +424,7 @@ class Upload {
         .then(() => writeCache(newCacheData))
         .then(() => finish())
         .catch(err => {
-          console.error(err);
-          throw new Error(err);
+          callback(err);
         });
       //
     });
