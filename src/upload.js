@@ -144,7 +144,7 @@ function mkdirsSync(dirname) {
 
 function loadCacheData() {
   const dir = findCacheDir({
-    name: "sQiNiu",
+    name: "simple-cdn-webpack-plugin",
     create: true
   });
   const cachePath = dir + "/cacheData.json";
@@ -157,7 +157,7 @@ function loadCacheData() {
 
 function writeCache(data) {
   const dir = findCacheDir({
-    name: "sQiNiu",
+    name: "simple-cdn-webpack-plugin",
     create: true
   });
   fs.writeFileSync(dir + "/cacheData.json", JSON.stringify(data));
@@ -426,7 +426,6 @@ class Upload {
         .catch(err => {
           callback(err);
         });
-      //
     });
   }
 }
