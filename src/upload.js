@@ -22,7 +22,8 @@ const defaultOptions = {
   refreshFilters: [],
   delete: false,
   // 文件目录
-  prefix: ""
+  prefix: "",
+  chunkSize: 2
 };
 
 //七牛单次刷新cdn、单次删除文件 最大的数目
@@ -30,6 +31,9 @@ const MAX_REFRESH = 100;
 const MAX_DELETE = 1000;
 // 限次上传的连接数
 const MAX_UPLOAD = 20;
+const UPLOAD = Symbol("uploading");
+const DELETE = Symbol("delete");
+const REFRESH = Symbol("refrsh");
 
 /**
  * 初始化options，方便以后扩展字段
@@ -206,11 +210,23 @@ function chunkArray(data, chunkSize) {
 const spinner = ora({
   color: "green"
 });
-const spinning = ({ done = 0, total }) => {
-  if (total) {
-    spinner.text = `uploading ${done}/${total}`;
-  } else {
-    spinner.text = `wait for uploading...`;
+const spinning = ({ done = 0, total, type = UPLOAD }) => {
+  switch (type) {
+    case UPLOAD:
+      spinner.text = total
+        ? `uploading ${done}/${total}`
+        : `wait for uploading...`;
+      break;
+    case DELETE:
+      spinner.text = total
+        ? `deleting ${done}/${total}`
+        : `wait for deleting...`;
+      break;
+    case REFRESH:
+      spinner.text = total
+        ? `refreshing ${done}/${total}`
+        : `wait for refreshing...`;
+      break;
   }
 
   if (done === 0) {
@@ -292,15 +308,22 @@ class Upload {
 
       const uploadFiles = async fileNames => {
         console.log(`${chalk.blue(fileNames.length)} files need to upload`);
-        let index = 0;
+        let done = 0;
         let total = fileNames.length;
-        spinning({ done: index, total });
-        while (index <= total) {
-          await uploadFile(fileNames[index]).catch(err => {
-            this.failedData[fileNames[index]] = true;
+        spinning({
+          done,
+          total,
+          UPLOAD
+        });
+
+        for (let fileName of fileNames) {
+          await uploadFile(fileName);
+          done++;
+          spinning({
+            done,
+            total,
+            UPLOAD
           });
-          spinning({ done: index, total });
-          index++;
         }
         console.log(chalk.blue("upload files success"));
         return Promise.resolve();
@@ -338,7 +361,7 @@ class Upload {
       /**
        * 删除不用的缓存文件
        */
-      const deleteFiles = () => {
+      const deleteFiles = async () => {
         if (!this.options.delete) {
           return Promise.resolve();
         }
@@ -351,8 +374,10 @@ class Upload {
         console.log(
           `${chalk.blue(needDeleteFiles.length)} files need to delete`
         );
+        let total = needDeleteFiles.length;
+
         // 没有缓存
-        if (needDeleteFiles.length === 0) {
+        if (total === 0) {
           return Promise.resolve();
         }
 
@@ -360,7 +385,7 @@ class Upload {
           qiniu.rs.deleteOp(this.options.bucket, fileName);
 
         // 批量删除文件
-        const deleteByBatch = files => {
+        const deleteByBatch = async files => {
           const bucketManager = new qiniu.rs.BucketManager(
             this.createMac(),
             this.config
@@ -383,16 +408,26 @@ class Upload {
             });
           });
         };
-
         let chunkes = chunkArray(needDeleteFiles, MAX_REFRESH);
-        return Promise.all(
-          chunkes.map(chunk =>
-            deleteByBatch(chunk.map(file => deleteFile(file)))
-          )
-        );
+        let done = 0;
+        spinning({
+          done,
+          total,
+          DELETE
+        });
+        for (let chunk of chunkes) {
+          await deleteByBatch(chunk.map(file => deleteFile(file)));
+          done += chunk.length;
+          spinning({
+            done,
+            total,
+            DELETE
+          });
+        }
+        return Promise.resolve();
       };
 
-      const refresh = () => {
+      const refresh = async () => {
         if (!this.options.refresh) {
           return Promise.resolve();
         }
@@ -403,12 +438,13 @@ class Upload {
         console.log(
           `${chalk.blue(needRefreshUrls.length)} files need to refresh`
         );
+        const total = needRefreshUrls.length;
 
-        if (needRefreshUrls.length === 0) {
+        if (total === 0) {
           return Promise.resolve();
         }
 
-        const refreshByBatch = urlsToRefresh => {
+        const refreshByBatch = async urlsToRefresh => {
           return new Promise((resolve, reject) => {
             cdnManager.refreshUrls(urlsToRefresh, function(
               err,
@@ -433,7 +469,22 @@ class Upload {
         };
 
         let chunkes = chunkArray(needRefreshUrls, MAX_DELETE);
-        return Promise.all(chunkes.map(chunk => refreshByBatch(chunk)));
+        let done = 0;
+        spinning({
+          done,
+          total,
+          REFRESH
+        });
+        for (let chunk of chunkes) {
+          await refreshByBatch(chunk);
+          done += chunk.length;
+          spinning({
+            done,
+            total,
+            REFRESH
+          });
+        }
+        return Promise.resolve();
       };
 
       const finish = () => {

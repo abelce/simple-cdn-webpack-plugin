@@ -1,6 +1,6 @@
 {
   "name": "simple-cdn-webpack-plugin",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Install",
   "main": "dist/index.js",
   "scripts": {
