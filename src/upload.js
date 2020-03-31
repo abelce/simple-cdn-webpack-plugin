@@ -3,6 +3,7 @@ const fs = require("fs");
 const crypto = require("crypto");
 const findCacheDir = require("find-cache-dir");
 const chalk = require("chalk");
+const ora = require("ora");
 
 const defaultOptions = {
   // 默认超时时间
@@ -27,6 +28,8 @@ const defaultOptions = {
 //七牛单次刷新cdn、单次删除文件 最大的数目
 const MAX_REFRESH = 100;
 const MAX_DELETE = 1000;
+// 限次上传的连接数
+const MAX_UPLOAD = 20;
 
 /**
  * 初始化options，方便以后扩展字段
@@ -200,6 +203,22 @@ function chunkArray(data, chunkSize) {
   return chunkes || [];
 }
 
+const spinner = ora({
+  color: "green"
+});
+const spinning = ({ done = 0, total }) => {
+  if (total) {
+    spinner.text = `uploading ${done}/${total}`;
+  } else {
+    spinner.text = `wait for uploading...`;
+  }
+
+  if (done === 0) {
+    spinner.start();
+  }
+  done === total && spinner.succeed();
+};
+
 class Upload {
   constructor(options) {
     this.options = getOptions(options);
@@ -219,6 +238,9 @@ class Upload {
 
   apply(compiler) {
     compiler.plugin("after-emit", async (compilation, callback) => {
+      console.log("\n");
+      console.log(chalk.blue("simple-cdn-webpacl-plugin start..."));
+
       const { assets } = compilation;
       const fileNames = filterArray(
         this.options.exclude,
@@ -260,7 +282,7 @@ class Upload {
               } else if (respInfo.statusCode == 200) {
                 resolve();
               } else {
-                console.log("upload failed");
+                console.log(chalk.red("upload failed"));
                 reject(respBody);
               }
             }
@@ -270,11 +292,18 @@ class Upload {
 
       const uploadFiles = async fileNames => {
         console.log(`${chalk.blue(fileNames.length)} files need to upload`);
-        return await fileNames.map(async fileName => {
-          return await uploadFile(fileName).catch(err => {
-            this.failedData[fileName] = true;
+        let index = 0;
+        let total = fileNames.length;
+        spinning({ done: index, total });
+        while (index <= total) {
+          await uploadFile(fileNames[index]).catch(err => {
+            this.failedData[fileNames[index]] = true;
           });
-        });
+          spinning({ done: index, total });
+          index++;
+        }
+        console.log(chalk.blue("upload files success"));
+        return Promise.resolve();
       };
 
       const filterShouldUpdateFileNames = async () => {
