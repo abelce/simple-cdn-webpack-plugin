@@ -234,6 +234,9 @@ const spinning = ({ done = 0, total, type = UPLOAD }) => {
   }
   done === total && spinner.succeed();
 };
+const spinFail = text => {
+  spinner.fail(text);
+};
 
 class Upload {
   constructor(options) {
@@ -317,7 +320,12 @@ class Upload {
         });
 
         for (let fileName of fileNames) {
-          await uploadFile(fileName);
+          try {
+            await uploadFile(fileName);
+          } catch (err) {
+            spinFail(`upload file: ${fileName} failed`);
+            return Promise.reject(err);
+          }
           done++;
           spinning({
             done,
@@ -416,7 +424,13 @@ class Upload {
           DELETE
         });
         for (let chunk of chunkes) {
-          await deleteByBatch(chunk.map(file => deleteFile(file)));
+          try {
+            await deleteByBatch(chunk.map(file => deleteFile(file)));
+          } catch (err) {
+            spinFail(`delete file failed`);
+            return Promise.reject(err);
+          }
+
           done += chunk.length;
           spinning({
             done,
@@ -476,7 +490,12 @@ class Upload {
           REFRESH
         });
         for (let chunk of chunkes) {
-          await refreshByBatch(chunk);
+          try {
+            await refreshByBatch(chunk);
+          } catch (err) {
+            spinFail(`delete file failed`);
+            return Promise.reject(err);
+          }
           done += chunk.length;
           spinning({
             done,
