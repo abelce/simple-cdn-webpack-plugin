@@ -45,7 +45,7 @@ new SimleCdnWebpackPlugin({
 | exclude        | array  | []      | exclude files that don't need to be uploaded, parameters can be strings, regular, functions |
 | Include        | array  | []      | Include files that need to be uploaded, parameters can be strings, regular, functions |
 | delete         | bool   | false   | whether to delete the last uploaded files from qiniu         |
-| Refresh        | bool   | true    | whether to refresh the file                                  |
+| refresh        | bool   | true    | whether to refresh the file                                  |
 | refreshFilters | array  | []      | filter files that need to be refreshed, all files are refreshed by default. parameters can be strings, regular, functions |
 | prefiex | string | | the `prefix` of the filename |
 
