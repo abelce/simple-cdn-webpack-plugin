@@ -27,7 +27,7 @@ new SimleCdnWebpackPlugin({
     zone: 'xxx',
     bucket: 'xxx',
     cdn: 'xxx',
-    include: [/index\.html/],
+    exclude: [/index\.html/],
     refresh: true,
     refreshFilters: [],
   })
